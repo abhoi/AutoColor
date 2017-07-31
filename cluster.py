@@ -7,9 +7,10 @@ import tkFileDialog as filedialog
 from Tkinter import *
 from tkColorChooser import askcolor
 from PIL import ImageTk,Image
+import time
 
 # read image, resize to 400x400 and print h, w, c
-orgImg = cv2.imread('patterns/1.jpg')
+orgImg = cv2.imread('patterns/2.jpg')
 (h, w, c) = orgImg.shape
 print h, w, c
 #orgImg = cv2.pyrDown(orgImg)
@@ -215,8 +216,8 @@ def generateUI(center, pixel, indices):
 	root.mainloop()
 
 def generateInput():
-	pil_im = Image.fromarray(orgImg)
-	pil_im.show()
+	#pil_im = Image.fromarray(orgImg)
+	#pil_im.show()
 
 	inputText = Tk()
 	Label(inputText, text="Number of Threads").grid(row=0, column=0)
@@ -245,10 +246,12 @@ def step (item):
 def kmeans(K, inputText):
 	inputText.destroy()
 	global orgImg
+
+	t0 = time.time()
 	# color quantization
 	orgImg = cv2.cvtColor(orgImg, cv2.COLOR_BGR2LAB)
 	orgImg = orgImg.reshape((orgImg.shape[0] * orgImg.shape[1], 3))
-	clt = MiniBatchKMeans(n_clusters = int(K))
+	clt = MiniBatchKMeans(n_clusters = 8)
 	labels = clt.fit_predict(orgImg)
 	quant = clt.cluster_centers_.astype("uint8")[labels]
 
@@ -264,6 +267,7 @@ def kmeans(K, inputText):
 	quant = cv2.cvtColor(quant, cv2.COLOR_RGB2BGR)
 	orgImg = quant
 
+	# kmeans algorithm
 	img = orgImg
 	height, width, channels = img.shape
 	cv2.imwrite('curr_img.jpg', img)
@@ -272,7 +276,17 @@ def kmeans(K, inputText):
 	z = np.float32(z)
 
 	criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 10, 1.0)
-	ret,pixel,center=cv2.kmeans(z, int(K), None, criteria, 10, cv2.KMEANS_RANDOM_CENTERS)
+	min_sse = sys.maxint
+	min_k = 100
+	print("Pre-Optimal value of K: %d" % min_k)
+	for i in range(1, 16):
+		ret,pixel,center = cv2.kmeans(z, i, None, criteria, 10, cv2.KMEANS_RANDOM_CENTERS)
+		if ret < min_sse:
+			min_k = i
+			min_sse = ret
+	print("Optimal value of K: %d" % min_k)
+
+	ret, pixel, center = cv2.kmeans(z, min_k, None, criteria, 10, cv2.KMEANS_RANDOM_CENTERS)
 
 	global coordinates
 	coordinates = [[] for _ in range(len(center))]
@@ -286,7 +300,7 @@ def kmeans(K, inputText):
 		for j in range(len(center)):
 			if list(center[j]) == list(center2[i]):
 				indices.append(j)
-
+	print(time.time() - t0)
 	generateUI(center2, pixel, indices)
 
 generateInput()

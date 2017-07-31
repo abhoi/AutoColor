@@ -10,7 +10,7 @@ from Tkinter import *
 from tkColorChooser import askcolor
 from PIL import ImageTk,Image
 
-org_img = cv2.imread('flower.jpg')
+org_img = cv2.imread('patterns/1.jpg')
 org_img_backup = org_img
 org_img = cv2.cvtColor(org_img,cv2.COLOR_BGR2RGB)
 orgColors = [] #save the original colors for reset
