@@ -10,7 +10,7 @@ from PIL import ImageTk,Image
 import time
 
 # read image, resize to 400x400 and print h, w, c
-orgImg = cv2.imread('patterns/2.jpg')
+orgImg = cv2.imread('patterns/3.jpg')
 (h, w, c) = orgImg.shape
 print h, w, c
 #orgImg = cv2.pyrDown(orgImg)
@@ -249,7 +249,7 @@ def kmeans(K, inputText):
 
 	t0 = time.time()
 	# color quantization
-	orgImg = cv2.cvtColor(orgImg, cv2.COLOR_BGR2LAB)
+	"""orgImg = cv2.cvtColor(orgImg, cv2.COLOR_BGR2LAB)
 	orgImg = orgImg.reshape((orgImg.shape[0] * orgImg.shape[1], 3))
 	clt = MiniBatchKMeans(n_clusters = 8)
 	labels = clt.fit_predict(orgImg)
@@ -266,7 +266,7 @@ def kmeans(K, inputText):
 	#orgImg = np.hstack([orgImg, quant])
 	quant = cv2.cvtColor(quant, cv2.COLOR_RGB2BGR)
 	orgImg = quant
-	print(time.time() - t0)
+	print(time.time() - t0)"""
 	
 	# kmeans algorithm
 	img = orgImg
@@ -277,17 +277,7 @@ def kmeans(K, inputText):
 	z = np.float32(z)
 
 	criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 10, 1.0)
-	min_sse = sys.maxint
-	min_k = 100
-	print("Pre-Optimal value of K: %d" % min_k)
-	for i in range(1, 16):
-		ret,pixel,center = cv2.kmeans(z, i, None, criteria, 10, cv2.KMEANS_RANDOM_CENTERS)
-		if ret < min_sse:
-			min_k = i
-			min_sse = ret
-	print("Optimal value of K: %d" % min_k)
-
-	ret, pixel, center = cv2.kmeans(z, min_k, None, criteria, 10, cv2.KMEANS_RANDOM_CENTERS)
+	ret, pixel, center = cv2.kmeans(z, int(K), None, criteria, 10, cv2.KMEANS_RANDOM_CENTERS)
 
 	global coordinates
 	coordinates = [[] for _ in range(len(center))]
