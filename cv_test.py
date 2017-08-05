@@ -15,10 +15,10 @@ def silhouetteCoeff(z):
 	t0 = time.time()
 	max_silhouette = 0
 	max_k = 0
-	for i in range(4, 17):
+	for i in range(4, 11):
 		clt = MiniBatchKMeans(n_clusters = i, random_state = 42)
 		clt.fit(z)
-		silhouette_avg = silhouette_score(z, clt.labels_, sample_size = 250, random_state = 42)
+		silhouette_avg = silhouette_score(z, clt.labels_, sample_size = 500, random_state = 42)
 		print("k: ", i, " silhouette avg: ", silhouette_avg)
 		if (silhouette_avg == 1.0):
 			max_k = i
@@ -81,18 +81,22 @@ def centroidHistogram(clt):
 def plotColors(hist, centroids):
 	bar = np.zeros((50, 300, 3), dtype = "uint8")
 	startX = 0
-
-	for (percent, color) in zip(hist, centroids):
-		endX = startX + (percent * 300)
-		cv2.rectangle(bar, (int(startX), 0), (int(endX), 50),
-			color.astype("uint8").tolist(), -1)
-		startX = endX
-
-	return bar
+	if centroids.shape[0] <= 8:
+		for (percent, color) in zip(hist, centroids):
+			endX = startX + (percent * 300)
+			cv2.rectangle(bar, (int(startX), 0), (int(endX), 50),
+				color.astype("uint8").tolist(), -1)
+			startX = endX
+		return bar
+	else:
+		for (percent, color) in zip(hist, centroids):
+			endX = startX + (0.125 * 300)
+			cv2.rectangle(bar, (int(startX), 0), (int(endX), 50),
+				color.astype("uint8").tolist(), -1)
+			startX = endX
+		return bar
 
 # read image
-img_path = 'patterns/11.jpg'
-
 ap = argparse.ArgumentParser()
 ap.add_argument("-i", "--image", required=True, help="Path to image")
 args = vars(ap.parse_args())
