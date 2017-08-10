@@ -9,6 +9,7 @@ from PIL import Image
 #from skimage import io, measure, color, filters, segmentation
 import cv2
 import argparse
+from skimage.transform import pyramid_gaussian
 
 # silhouetteCoeff determination
 def silhouetteCoeff(z):
@@ -32,7 +33,7 @@ def silhouetteCoeff(z):
 	print("Time for silhouette: ", time.time() - t0)
 	return int(max_k)
 
-# colorQuantization algorithm
+"""# colorQuantization algorithm
 def colorQuantize(img):
 	z = img.reshape((-1, 3))
 	z = np.float32(z)
@@ -44,18 +45,42 @@ def colorQuantize(img):
 	res = center[label.flatten()]
 	res = res.reshape(img.shape)
 	print(res.shape)
-	kMeans(res)
+	kMeans(res)"""
 
 # kMeans algorithm
 def kMeans(img):
 	t0 = time.time()
 	# apply kMeans, fit data, get histogram, get color bar
+	org_img = img
 	img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
 	z = img.reshape((-1, 3))
 	print(z.shape)
 
+	# image resize just for silhouetteCoeff
+	# Crops images to 300x300, but loses accuracy
+	# Try pyrDown (downsampling the images)
+	"""ysize, xsize, chan = img.shape
+	if ysize and xsize > 300:
+		xoff = (xsize - 300) // 2
+		yoff = (ysize - 300) // 2
+		y = img[yoff:-yoff, xoff:-xoff]
+	else:
+		y = img
+	y = y.reshape((-1, 3))
+	print(y.shape)"""
+
+	# downnsample images with gaussian smoothing
+	for (i, resized) in enumerate(pyramid_gaussian(org_img, downscale=2)):
+		if resized.shape[0] < 100 or resized.shape[1] < 100:
+			break
+		org_img = resized
+		#cv2.imshow("Layer {}".format(i + 1), resized)
+		print(org_img.shape)
+
+	org_img = org_img.reshape((-1, 3))
+	print(org_img.shape)
 	# kmeans
-	clt = MiniBatchKMeans(n_clusters = silhouetteCoeff(z), random_state = 42)
+	clt = MiniBatchKMeans(n_clusters = silhouetteCoeff(org_img), random_state = 42)
 	clt.fit(z)
 
 	hist = centroidHistogram(clt)
