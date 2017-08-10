@@ -17,16 +17,16 @@ def silhouetteCoeff(z):
 	t0 = time.time()
 	max_silhouette = 0
 	max_k = 0
-	for i in range(5, 11):
+	for i in range(4, 11):
 		clt = MiniBatchKMeans(n_clusters = i, random_state = 42)
 		clt.fit(z)
 		silhouette_avg = silhouette_score(z, clt.labels_, sample_size = 500, random_state = 42)
 		print("k: ", i, " silhouette avg: ", silhouette_avg)
-		if (silhouette_avg == 1.0):
+		if silhouette_avg == 1.0:
 			max_k = i
 			print("Max k: ", max_k)
 			break
-		elif (silhouette_avg > max_silhouette):
+		elif silhouette_avg > max_silhouette:
 			max_silhouette = silhouette_avg
 			max_k = i
 	print("Max silhouette: ", max_silhouette)
@@ -49,7 +49,7 @@ def colorQuantize(img):
 	kMeans(res)"""
 
 # BIC
-def compute_bic(kmeans, X):
+"""def compute_bic(kmeans, X):
 	centers = [kmeans.cluster_centers_]
 	labels = kmeans.labels_
 	m = kmeans.n_clusters
@@ -63,13 +63,14 @@ def compute_bic(kmeans, X):
                n[i] * np.log(N) -
              ((n[i] * d) / 2) * np.log(2*np.pi*cl_var) -
              ((n[i] - 1) * d/ 2) for i in range(m)]) - const_term
-	return(BIC)
+	return(BIC)"""
 
 # kMeans algorithm
 def kMeans(img):
 	t0 = time.time()
 	# apply kMeans, fit data, get histogram, get color bar
 	org_img = img
+	print(img.shape[0], img.shape[1])
 	img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
 	z = img.reshape((-1, 3))
 	print(z.shape)
@@ -88,15 +89,17 @@ def kMeans(img):
 	print(y.shape)"""
 
 	# downnsample images with gaussian smoothing
-	for (i, resized) in enumerate(pyramid_gaussian(org_img, downscale=2)):
-		if resized.shape[0] < 100 or resized.shape[1] < 100:
-			break
-		org_img = resized
-		#cv2.imshow("Layer {}".format(i + 1), resized)
-
+	if (img.shape[0] > 250 or img.shape[1] > 250):
+		for (i, resized) in enumerate(pyramid_gaussian(org_img, downscale=2)):
+			if resized.shape[0] < 100 or resized.shape[1] < 100:
+				print(resized.shape)
+				break
+			org_img = resized
+			#cv2.imshow("Layer {}".format(i + 1), resized)
+	
 	org_img = org_img.reshape((-1, 3))
 	#org_img = normalize(org_img)
-	#org_img = scale(org_img)
+	org_img = scale(org_img)
 
 	#print(org_img)
 

@@ -17,7 +17,7 @@ def silhouetteCoeff(z):
 	t0 = time.time()
 	max_silhouette = 0
 	max_k = 0
-	for i in range(5, 11):
+	for i in range(4, 11):
 		clt = MiniBatchKMeans(n_clusters = i, random_state = 42)
 		clt.fit(z)
 		silhouette_avg = silhouette_score(z, clt.labels_, sample_size = 500, random_state = 42)
@@ -71,10 +71,11 @@ def kMeans(img):
 	print(y.shape)"""
 
 	# downnsample images with gaussian smoothing
-	for (i, resized) in enumerate(pyramid_gaussian(org_img, downscale=2)):
-		if resized.shape[0] < 100 or resized.shape[1] < 100:
-			break
-		org_img = resized
+	if (img.shape[0] > 250 or img.shape[1] > 250):
+		for (i, resized) in enumerate(pyramid_gaussian(org_img, downscale=2)):
+			if resized.shape[0] < 100 or resized.shape[1] < 100:
+				break
+			org_img = resized
 		#cv2.imshow("Layer {}".format(i + 1), resized)
 		#print(org_img.shape)
 
