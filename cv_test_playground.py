@@ -5,7 +5,6 @@ from sklearn.cluster import KMeans, MiniBatchKMeans, DBSCAN
 from sklearn.metrics import silhouette_score
 import time
 import matplotlib.pyplot as plt
-from PIL import Image
 #from skimage import io, measure, color, filters, segmentation
 import cv2
 import argparse
@@ -97,7 +96,8 @@ def kMeans(img):
 
 	org_img = org_img.reshape((-1, 3))
 	#org_img = normalize(org_img)
-	org_img = scale(org_img)
+	#org_img = scale(org_img)
+
 	#print(org_img)
 
 	# calculate sse score for each k value
