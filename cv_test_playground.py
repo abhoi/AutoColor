@@ -10,6 +10,7 @@ from PIL import Image
 import cv2
 import argparse
 from skimage.transform import pyramid_gaussian
+from scipy.spatial.distance import cdist, pdist
 from sklearn.preprocessing import scale
 
 # silhouetteCoeff determination
@@ -21,7 +22,7 @@ def silhouetteCoeff(z):
 		clt = MiniBatchKMeans(n_clusters = i, random_state = 42)
 		clt.fit(z)
 		silhouette_avg = silhouette_score(z, clt.labels_, sample_size = 500, random_state = 42)
-		#print("k: ", i, " silhouette avg: ", silhouette_avg)
+		print("k: ", i, " silhouette avg: ", silhouette_avg)
 		if (silhouette_avg == 1.0):
 			max_k = i
 			print("Max k: ", max_k)
@@ -29,8 +30,8 @@ def silhouetteCoeff(z):
 		elif (silhouette_avg > max_silhouette):
 			max_silhouette = silhouette_avg
 			max_k = i
-	#print("Max silhouette: ", max_silhouette)
-	#print("Max k: ", max_k)
+	print("Max silhouette: ", max_silhouette)
+	print("Max k: ", max_k)
 	print("Time for silhouette: ", time.time() - t0)
 	return int(max_k)
 
@@ -48,6 +49,23 @@ def colorQuantize(img):
 	print(res.shape)
 	kMeans(res)"""
 
+# BIC
+def compute_bic(kmeans, X):
+	centers = [kmeans.cluster_centers_]
+	labels = kmeans.labels_
+	m = kmeans.n_clusters
+	n = np.bincount(labels)
+	N, d = X.shape
+
+	cl_var = (1.0 / (N - m) / d) * sum([sum(cdist(X[np.where(labels == i)], [centers[0][i]],
+		'euclidean')**2) for i in range(m)])
+	const_term = 0.5 * m * np.log(N) * (d + 1)
+	BIC = np.sum([n[i] * np.log(n[i]) -
+               n[i] * np.log(N) -
+             ((n[i] * d) / 2) * np.log(2*np.pi*cl_var) -
+             ((n[i] - 1) * d/ 2) for i in range(m)]) - const_term
+	return(BIC)
+
 # kMeans algorithm
 def kMeans(img):
 	t0 = time.time()
@@ -55,7 +73,7 @@ def kMeans(img):
 	org_img = img
 	img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
 	z = img.reshape((-1, 3))
-	#print(z.shape)
+	print(z.shape)
 
 	# image resize just for silhouetteCoeff
 	# Crops images to 300x300, but loses accuracy
@@ -76,11 +94,39 @@ def kMeans(img):
 			break
 		org_img = resized
 		#cv2.imshow("Layer {}".format(i + 1), resized)
-		#print(org_img.shape)
 
 	org_img = org_img.reshape((-1, 3))
+	#org_img = normalize(org_img)
 	org_img = scale(org_img)
-	#print(org_img.shape)
+	#print(org_img)
+
+	# calculate sse score for each k value
+	"""Ks = range(1, 10)
+	km = [KMeans(n_clusters=i) for i in Ks]
+	score = [km[i].fit(org_img).score(org_img) for i in range(len(km))]
+	plt.plot(Ks, score)
+	plt.show()"""
+
+	# manual version of calculating bss to measure best value of k
+	"""kMeansVar = [KMeans(n_clusters = k).fit(org_img) for k in range(1, 10)]
+	centroids = [X.cluster_centers_ for X in kMeansVar]
+	k_euclid = [cdist(org_img, cent) for cent in centroids]
+	dist = [np.min(ke, axis=1) for ke in k_euclid]
+	wcss = [sum(d**2) for d in dist]
+	tss = sum(pdist(org_img)**2/org_img.shape[0])
+	bss = tss - wcss
+	plt.plot(bss)
+	plt.show()"""
+
+	"""t0 = time.time()
+	ks = range(1, 10)
+	km = [KMeans(n_clusters = i, init="k-means++").fit(org_img) for i in ks]
+	BIC = [compute_bic(kmeansi, org_img) for kmeansi in km]
+	#print(BIC)
+	print("Time for BIC: ", time.time() - t0)"""
+
+
+
 	# kmeans
 	clt = MiniBatchKMeans(n_clusters = silhouetteCoeff(org_img), random_state = 42)
 	clt.fit(z)
