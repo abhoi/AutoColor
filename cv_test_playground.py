@@ -17,7 +17,7 @@ def silhouetteCoeff(z):
 	t0 = time.time()
 	max_silhouette = 0
 	max_k = 0
-	for i in range(4, 11):
+	for i in range(4, 17):
 		clt = MiniBatchKMeans(n_clusters = i, random_state = 42)
 		clt.fit(z)
 		silhouette_avg = silhouette_score(z, clt.labels_, sample_size = 500, random_state = 42)
@@ -40,7 +40,7 @@ def colorQuantize(img):
 	z = np.float32(z)
 	
 	criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 10, 0.1)
-	sse, label, center = cv2.kmeans(z, 16, None, criteria, 8, cv2.KMEANS_RANDOM_CENTERS)
+	sse, label, center = cv2.kmeans(z, 32, None, criteria, 8, cv2.KMEANS_RANDOM_CENTERS)
 
 	center = np.uint8(center)
 	res = center[label.flatten()]
@@ -98,7 +98,6 @@ def kMeans(img):
 			#cv2.imshow("Layer {}".format(i + 1), resized)
 	
 	org_img = org_img.reshape((-1, 3))
-	#org_img = normalize(org_img)
 	org_img = scale(org_img)
 
 	#print(org_img)
@@ -157,20 +156,12 @@ def centroidHistogram(clt):
 def plotColors(hist, centroids):
 	bar = np.zeros((50, 300, 3), dtype = "uint8")
 	startX = 0
-	if centroids.shape[0] <= 8:
-		for (percent, color) in zip(hist, centroids):
-			endX = startX + (percent * 300)
-			cv2.rectangle(bar, (int(startX), 0), (int(endX), 50),
-				color.astype("uint8").tolist(), -1)
-			startX = endX
-		return bar
-	else:
-		for (percent, color) in zip(hist, centroids):
-			endX = startX + (0.125 * 300)
-			cv2.rectangle(bar, (int(startX), 0), (int(endX), 50),
-				color.astype("uint8").tolist(), -1)
-			startX = endX
-		return bar
+	for (percent, color) in zip(hist, centroids):
+		endX = startX + (percent * 300)
+		cv2.rectangle(bar, (int(startX), 0), (int(endX), 50),
+			color.astype("uint8").tolist(), -1)
+		startX = endX
+	return bar
 
 # read image
 ap = argparse.ArgumentParser()
@@ -179,3 +170,4 @@ args = vars(ap.parse_args())
 
 img = cv2.imread(args["image"])
 kMeans(img)
+#colorQuantize(img)

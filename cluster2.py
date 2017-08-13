@@ -10,7 +10,7 @@ from PIL import ImageTk,Image
 import time
 
 # read image, resize to 400x400 and print h, w, c
-orgImg = cv2.imread('patterns/3.jpg')
+orgImg = cv2.imread('patterns/2.jpg')
 (h, w, c) = orgImg.shape
 print h, w, c
 #orgImg = cv2.pyrDown(orgImg)
@@ -285,12 +285,12 @@ def kmeans(K, inputText):
 		coordinates[pixel[i][0]].append([i%width, int(i/width)])
 
 	center2 = sorted(center, key=step, reverse=True)
-
 	indices = []
 	for i in range(len(center2)):
 		for j in range(len(center)):
 			if list(center[j]) == list(center2[i]):
 				indices.append(j)
+	print(center2)
 	generateUI(center2, pixel, indices)
 
 generateInput()

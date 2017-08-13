@@ -11,6 +11,8 @@ import cv2
 import argparse
 from skimage.transform import pyramid_gaussian
 from sklearn.preprocessing import scale
+import math
+#from sklearn.neighbors import DistanceMetric
 
 # silhouetteCoeff determination
 def silhouetteCoeff(z):
@@ -48,6 +50,11 @@ def colorQuantize(img):
 	print(res.shape)
 	kMeans(res)"""
 
+# manhattan distance function
+def dist(a, b):
+	#return abs(a[0] - b[0]) + abs(a[1] - b[1]) + abs(a[2] - b[2])
+	math.sqrt(math.pow(a[0] - b[0], 2) + math.pow(a[1] - b[1], 2) + math.pow(a[2] - b[2], 2))
+
 # kMeans algorithm
 def kMeans(img):
 	t0 = time.time()
@@ -83,14 +90,40 @@ def kMeans(img):
 	org_img = scale(org_img)
 	#print(org_img.shape)
 	# kmeans
-	clt = KMeans(n_clusters = silhouetteCoeff(org_img), random_state = 42)
+	clt = MiniBatchKMeans(n_clusters = 16, random_state = 42)
 	clt.fit(z)
-	#print(clt.cluster_centers_)
+	c_centers = clt.cluster_centers_
 
+	klt = MiniBatchKMeans(n_clusters = silhouetteCoeff(org_img), random_state = 42)
+	klt.fit(z)
+	k_centers = klt.cluster_centers_
+	
+	print("k_centers(b): ", k_centers)
+	print("c_centers(b): ", c_centers)
+	print("c_centers shape: ", c_centers.shape)
+	print("k_centers shape: ", k_centers.shape)
+
+
+	for (idx, i) in enumerate(k_centers):
+		d = 999
+		max_jdx = 999
+		for (jdx, j) in enumerate(c_centers):
+			if dist(i, j) < d:
+				d = dist(i, j)
+				k_centers[idx, :] = c_centers[jdx, :]
+				max_jdx = jdx
+		print(max_jdx)
+		c_centers = np.delete(c_centers, max_jdx, axis = 0)
+
+	print("c_centers(a): ", c_centers)
+	print("k_centers(a): ", k_centers)
 	hist = centroidHistogram(clt)
 	bar = plotColors(hist, clt.cluster_centers_)
 	print("Time including KMeans: ", time.time() - t0)
 	#print("unique labels: ", np.unique(np.array(clt.labels_), axis=0))
+
+	hist2 = centroidHistogram(klt)
+	bar2 = plotColors(hist2, klt.cluster_centers_)
 
 	plt.figure(1)
 	plt.axis("off")
@@ -98,6 +131,12 @@ def kMeans(img):
 	plt.imshow(img)
 	plt.subplot(212)
 	plt.imshow(bar)
+	plt.figure(2)
+	plt.axis("off")
+	plt.subplot(211)
+	plt.imshow(img)
+	plt.subplot(212)
+	plt.imshow(bar2)
 	plt.show()
 
 def centroidHistogram(clt):
@@ -110,20 +149,12 @@ def centroidHistogram(clt):
 def plotColors(hist, centroids):
 	bar = np.zeros((50, 300, 3), dtype = "uint8")
 	startX = 0
-	if centroids.shape[0] <= 8:
-		for (percent, color) in zip(hist, centroids):
-			endX = startX + (percent * 300)
-			cv2.rectangle(bar, (int(startX), 0), (int(endX), 50),
-				color.astype("uint8").tolist(), -1)
-			startX = endX
-		return bar
-	else:
-		for (percent, color) in zip(hist, centroids):
-			endX = startX + (0.125 * 300)
-			cv2.rectangle(bar, (int(startX), 0), (int(endX), 50),
-				color.astype("uint8").tolist(), -1)
-			startX = endX
-		return bar
+	for (percent, color) in zip(hist, centroids):
+		endX = startX + (percent * 300)
+		cv2.rectangle(bar, (int(startX), 0), (int(endX), 50),
+			color.astype("uint8").tolist(), -1)
+		startX = endX
+	return bar
 
 # read image
 ap = argparse.ArgumentParser()
