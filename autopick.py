@@ -19,7 +19,7 @@ def silhouetteCoeff(z):
 	t0 = time.time()
 	max_silhouette = 0
 	max_k = 0
-	for i in range(4, 17):
+	for i in range(4, 9):
 		clt = MiniBatchKMeans(n_clusters = i, random_state = 42)
 		clt.fit(z)
 		silhouette_avg = silhouette_score(z, clt.labels_, sample_size = 500, random_state = 42)
@@ -31,8 +31,8 @@ def silhouetteCoeff(z):
 		elif (silhouette_avg > max_silhouette):
 			max_silhouette = silhouette_avg
 			max_k = i
-	#print("Max silhouette: ", max_silhouette)
-	#print("Max k: ", max_k)
+	print("Max silhouette: ", max_silhouette)
+	print("Max k: ", max_k)
 	print("Time for silhouette: ", time.time() - t0)
 	return int(max_k)
 
@@ -52,8 +52,8 @@ def colorQuantize(img):
 
 # manhattan distance function
 def dist(a, b):
-	#return abs(a[0] - b[0]) + abs(a[1] - b[1]) + abs(a[2] - b[2])
-	math.sqrt(math.pow(a[0] - b[0], 2) + math.pow(a[1] - b[1], 2) + math.pow(a[2] - b[2], 2))
+	return abs(a[0] - b[0]) + abs(a[1] - b[1]) + abs(a[2] - b[2])
+	#math.sqrt(math.pow(a[0] - b[0], 2) + math.pow(a[1] - b[1], 2) + math.pow(a[2] - b[2], 2))
 
 # kMeans algorithm
 def kMeans(img):
