@@ -19,7 +19,7 @@ def silhouetteCoeff(z):
 	t0 = time.time()
 	max_silhouette = 0
 	max_k = 0
-	for i in range(4, 9):
+	for i in range(6, 9):
 		clt = MiniBatchKMeans(n_clusters = i, random_state = 42)
 		clt.fit(z)
 		silhouette_avg = silhouette_score(z, clt.labels_, sample_size = 500, random_state = 42)
@@ -53,8 +53,8 @@ def colorQuantize(img):
 # manhattan distance function
 def dist(a, b):
 	return abs(a[0] - b[0]) + abs(a[1] - b[1]) + abs(a[2] - b[2])
-	#math.sqrt(math.pow(a[0] - b[0], 2) + math.pow(a[1] - b[1], 2) + math.pow(a[2] - b[2], 2))
-
+	#return math.sqrt(math.pow(a[0] - b[0], 2) + math.pow(a[1] - b[1], 2) + math.pow(a[2] - b[2], 2))
+	#return math.pow(math.pow(a[0] - b[0], 3) + math.pow(a[1] - b[1], 3) + math.pow(a[2] - b[2], 3), 1/3)
 # kMeans algorithm
 def kMeans(img):
 	t0 = time.time()
@@ -105,11 +105,12 @@ def kMeans(img):
 
 
 	for (idx, i) in enumerate(k_centers):
-		d = 999
+		d = 999999
 		max_jdx = 999
 		for (jdx, j) in enumerate(c_centers):
 			if dist(i, j) < d:
 				d = dist(i, j)
+				print(d)
 				k_centers[idx, :] = c_centers[jdx, :]
 				max_jdx = jdx
 		print(max_jdx)
