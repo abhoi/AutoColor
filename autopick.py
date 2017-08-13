@@ -19,7 +19,7 @@ def silhouetteCoeff(z):
 	t0 = time.time()
 	max_silhouette = 0
 	max_k = 0
-	for i in range(6, 9):
+	for i in range(6, 17):
 		clt = MiniBatchKMeans(n_clusters = i, random_state = 42)
 		clt.fit(z)
 		silhouette_avg = silhouette_score(z, clt.labels_, sample_size = 500, random_state = 42)
@@ -108,35 +108,31 @@ def kMeans(img):
 		d = 999999
 		max_jdx = 999
 		for (jdx, j) in enumerate(c_centers):
-			if dist(i, j) < d:
+			if dist(i, j) <= d:
 				d = dist(i, j)
-				print(d)
-				k_centers[idx, :] = c_centers[jdx, :]
+				#k_centers[idx, :] = c_centers[jdx, :]
 				max_jdx = jdx
+		k_centers[idx, :] = c_centers[max_jdx, :]
 		print(max_jdx)
 		c_centers = np.delete(c_centers, max_jdx, axis = 0)
 
 	print("c_centers(a): ", c_centers)
 	print("k_centers(a): ", k_centers)
 	hist = centroidHistogram(clt)
-	bar = plotColors(hist, clt.cluster_centers_)
+	bar = plotColors(hist, clt.cluster_centers_, False)
 	print("Time including KMeans: ", time.time() - t0)
 	#print("unique labels: ", np.unique(np.array(clt.labels_), axis=0))
 
 	hist2 = centroidHistogram(klt)
-	bar2 = plotColors(hist2, klt.cluster_centers_)
+	bar2 = plotColors(hist2, klt.cluster_centers_, True)
 
 	plt.figure(1)
 	plt.axis("off")
-	plt.subplot(211)
+	plt.subplot(1, 2, 1)
 	plt.imshow(img)
-	plt.subplot(212)
+	plt.subplot(2, 2, 2)
 	plt.imshow(bar)
-	plt.figure(2)
-	plt.axis("off")
-	plt.subplot(211)
-	plt.imshow(img)
-	plt.subplot(212)
+	plt.subplot(2, 2, 4)
 	plt.imshow(bar2)
 	plt.show()
 
@@ -145,17 +141,29 @@ def centroidHistogram(clt):
 	(hist, _) = np.histogram(clt.labels_, bins = numLabels)
 	hist = hist.astype("float")
 	hist /= hist.sum()
+	hist = np.sort(hist)[::-1]
+	print(hist)
 	return hist
 
-def plotColors(hist, centroids):
-	bar = np.zeros((50, 300, 3), dtype = "uint8")
-	startX = 0
-	for (percent, color) in zip(hist, centroids):
-		endX = startX + (percent * 300)
-		cv2.rectangle(bar, (int(startX), 0), (int(endX), 50),
-			color.astype("uint8").tolist(), -1)
-		startX = endX
-	return bar
+def plotColors(hist, centroids, stat):
+	if stat == False:
+		bar = np.zeros((50, 300, 3), dtype = "uint8")
+		startX = 0
+		for (percent, color) in zip(hist, centroids):
+			endX = startX + (percent * 300)
+			cv2.rectangle(bar, (int(startX), 0), (int(endX), 50),
+				color.astype("uint8").tolist(), -1)
+			startX = endX
+		return bar
+	else:
+		bar = np.zeros((50, 300, 3), dtype = "uint8")
+		startX = 0
+		for (percent, color) in zip(hist, centroids):
+			endX = startX + (0.125 * 300)
+			cv2.rectangle(bar, (int(startX), 0), (int(endX), 50),
+				color.astype("uint8").tolist(), -1)
+			startX = endX
+		return bar
 
 # read image
 ap = argparse.ArgumentParser()
@@ -170,4 +178,3 @@ for i, col in enumerate(color):
 	plt.xlim([0, 256])
 plt.show()"""
 kMeans(img)
-#colorQuantize(img)
