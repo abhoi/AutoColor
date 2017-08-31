@@ -10,7 +10,7 @@ from PIL import ImageTk,Image
 import time
 
 # read image, resize to 400x400 and print h, w, c
-orgImg = cv2.imread('patterns/2.jpg')
+orgImg = cv2.imread('patterns/1.jpg')
 (h, w, c) = orgImg.shape
 print h, w, c
 #orgImg = cv2.pyrDown(orgImg)
